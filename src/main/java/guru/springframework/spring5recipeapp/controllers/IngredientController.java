@@ -10,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Slf4j
 @Controller
@@ -58,7 +61,15 @@ public class IngredientController {
         //init uom
         ingredientCommand.setUnitOfMeasure(new UnitOfMeasureCommand());
 
-        model.addAttribute("uomList",  unitOfMeasureService.listAllUoms());
+        log.info("IngredientController - Before: Mono mono =unitOfMeasureService.listAllUoms().collectList();");
+        Mono mono =unitOfMeasureService.listAllUoms().collectList();
+        log.info("IngredientController - After: Mono mono =unitOfMeasureService.listAllUoms().collectList();");
+
+        log.info("IngredientController - Before: List<UnitOfMeasureCommand> unitOfMeasureCommandList = (List) mono.block();");
+        List<UnitOfMeasureCommand> unitOfMeasureCommandList = (List) mono.block();
+        log.info("IngredientController - After: List<UnitOfMeasureCommand> unitOfMeasureCommandList = (List) mono.block();");
+
+        model.addAttribute("uomList", unitOfMeasureCommandList);
 
         return "recipe/ingredient/ingredientform";
     }
@@ -68,7 +79,7 @@ public class IngredientController {
                                          @PathVariable String id, Model model){
         model.addAttribute("ingredient", ingredientService.findByRecipeIdAndIngredientId(recipeId, id));
 
-        model.addAttribute("uomList", unitOfMeasureService.listAllUoms());
+        model.addAttribute("uomList", unitOfMeasureService.listAllUoms().collectList().block());
         return "recipe/ingredient/ingredientform";
     }
 
